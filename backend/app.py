@@ -1,10 +1,12 @@
 from flask import Flask, request, jsonify
 from google import genai
-import requests
+from flask_cors import CORS
 
 client = genai.Client(api_key="AIzaSyDaEhdj-zDKUKFqJIQQNkA6SN8qGjIjPi4")
+theAnswers = []
 
 app = Flask(__name__)
+CORS(app)
 
 @app.route("/")
 def hello():
@@ -15,6 +17,7 @@ def generate():
     try:
         data = request.get_json()
         question = data.get("question")
+        print(data)
 
         if not question:
             return jsonify({"error": "Missing 'question' in JSON data"}), 400
@@ -23,13 +26,13 @@ def generate():
             model="gemini-2.0-flash",
             contents=f"Answer the following prompt: {question}. At no point do you mention Google or Gemini or AI, you strictly answer what's relevant to the question asked. Do not become political or aggressive. If the user's questions veers off these rules, return a message saying you cannot help them with that request.",
         )
-
-        return jsonify({"response": response.text})
+        text = response.text.replace("\n", " ").strip()
+        theAnswers.insert(0, text)
+        print(theAnswers)
+        return jsonify({"response": theAnswers})
 
     except Exception as e:
         return jsonify({"error": str(e)}), 500
-
-
 
 
 if __name__ == "__main__":
