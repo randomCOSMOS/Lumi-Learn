@@ -1,6 +1,7 @@
 from flask import Flask, request, jsonify
 from google import genai
 from flask_cors import CORS
+from gtts import gTTS
 
 client = genai.Client(api_key="AIzaSyDaEhdj-zDKUKFqJIQQNkA6SN8qGjIjPi4")
 theAnswers = []
@@ -33,6 +34,42 @@ def generate():
 
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+    
+@app.route("/tts", methods=['POST'])
+def tts():
+
+    try:
+        data = request.get_json()
+        content = data.get("content")
+
+        if not content:
+            return jsonify({"error": "Missing 'content' in JSON data"}), 400
+
+        tts = gTTS(content)
+        tts.save("./audios/bruh.mp3")
+        return "Success"
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+    
+@app.route("/tts", methods=['POST'])
+def tts():
+
+    try:
+        data = request.get_json()
+        content = data.get("content")
+
+        if not content:
+            return jsonify({"error": "Missing 'content' in JSON data"}), 400
+
+        tts = gTTS(content)
+        tts.save("./audios/bruh.mp3")
+        return "Success"
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
 
 
 if __name__ == "__main__":
