@@ -1,6 +1,6 @@
 "use client";
 
-import { FormEvent, useState } from "react";
+import { FormEvent, useState, useRef } from "react";
 import axios from "axios";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -22,10 +22,10 @@ import "../globals.css";
 export default function TTSPage() {
   const [loading, setLoading] = useState(false);
   const [text, setText] = useState("");
-  const [audioUrl, setAudioUrl] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const pathname = usePathname();
+  const audioRef = useRef<HTMLAudioElement>(null);
 
   const handleTTS = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -33,20 +33,13 @@ export default function TTSPage() {
 
     setLoading(true);
     setError(null);
-    setAudioUrl(null);
     
     try {
-      const res = await axios.post("http://localhost:5000/tts", {
-        text: text,
-      }, {
-        responseType: 'arraybuffer'
-      });
-      
-      // Convert the array buffer to a blob
-      const blob = new Blob([res.data], { type: 'audio/mpeg' });
-      // Create a URL for the blob
-      const url = URL.createObjectURL(blob);
-      setAudioUrl(url);
+      await axios.post("http://localhost:5000/tts", { content: text });
+      if (audioRef.current) {
+        audioRef.current.src = 'http://localhost:5000/get-audio';
+        audioRef.current.load();
+      }
     } catch (error) {
       console.error("Error generating speech:", error);
       setError("Sorry, we couldn't process your text right now. Please try again later.");
@@ -172,7 +165,7 @@ export default function TTSPage() {
             </Card>
           </div>
 
-          {(audioUrl || error) && (
+          {(audioRef.current || error) && (
             <div className="animate-fadeIn">
               <h2 className="text-xl font-semibold mb-4">Results</h2>
               <Card className="shadow-sm border border-gray-200 dark:border-gray-700">
@@ -183,11 +176,11 @@ export default function TTSPage() {
                     </div>
                   ) : (
                     <div className="flex flex-col items-center">
-                      <audio controls className="w-full max-w-md my-4" src={audioUrl || ''}>
+                      <audio ref={audioRef} controls className="w-full max-w-md my-4">
                         Your browser does not support the audio element.
                       </audio>
                       <p className="text-gray-600 dark:text-gray-300 text-sm">
-                        You can play, pause, and download the generated audio.
+                        You can play, pause, and control the generated audio.
                       </p>
                     </div>
                   )}

@@ -28,24 +28,6 @@ export default function Home() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const pathname = usePathname();
 
-  const handleQuestion = async (e: FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    if (!question.trim()) return;
-
-    setLoading(true);
-    try {
-      const res = await axios.post("http://localhost:5000/api", {
-        question: question,
-      });
-      setIncoming_data(res.data.response);
-    } catch (error) {
-      console.error("Error submitting question:", error);
-      setIncoming_data("Sorry, we couldn't process your question right now. Please try again later.");
-    } finally {
-      setLoading(false);
-    }
-  };
-
   const renderIncomingData = () => {
     if (!incoming_data) return null;
 

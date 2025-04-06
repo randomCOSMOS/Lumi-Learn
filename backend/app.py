@@ -1,7 +1,8 @@
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, send_file
 from google import genai
 from flask_cors import CORS
 from gtts import gTTS
+import os
 
 client = genai.Client(api_key="AIzaSyDaEhdj-zDKUKFqJIQQNkA6SN8qGjIjPi4")
 theAnswers = []
@@ -34,10 +35,9 @@ def generate():
 
     except Exception as e:
         return jsonify({"error": str(e)}), 500
-    
+
 @app.route("/tts", methods=['POST'])
 def tts():
-
     try:
         data = request.get_json()
         content = data.get("content")
@@ -46,31 +46,18 @@ def tts():
             return jsonify({"error": "Missing 'content' in JSON data"}), 400
 
         tts = gTTS(content)
-        tts.save("./audios/bruh.mp3")
-        return "Success"
+        tts.save("./audios/speech.mp3")
+        return jsonify({"message": "Audio generated successfully"}), 200
 
     except Exception as e:
         return jsonify({"error": str(e)}), 500
-    
-@app.route("/tts", methods=['POST'])
-def tts():
 
+@app.route("/get-audio", methods=['GET'])
+def get_audio():
     try:
-        data = request.get_json()
-        content = data.get("content")
-
-        if not content:
-            return jsonify({"error": "Missing 'content' in JSON data"}), 400
-
-        tts = gTTS(content)
-        tts.save("./audios/bruh.mp3")
-        return "Success"
-
+        return send_file("./audios/speech.mp3", mimetype="audio/mpeg")
     except Exception as e:
         return jsonify({"error": str(e)}), 500
-
-
-
 
 if __name__ == "__main__":
     app.run(debug=True, port=5000)
